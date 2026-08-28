@@ -40,6 +40,9 @@ export function formatDateTime(value: string | Date): string {
   return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-export function formatPrice(value: number): string {
-  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(value);
+export function formatPrice(value: number | string): string {
+  const numeric = typeof value === 'string' ? parseFloat(value) : value;
+  return new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(
+    Number.isFinite(numeric) ? numeric : 0
+  );
 }
