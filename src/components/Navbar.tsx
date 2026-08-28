@@ -2,14 +2,18 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { Menu, X,User, ShoppingBag } from 'lucide-react';
 import { siteConfig } from '@/config/site';
+import { useCart } from '@/context/CartContext';
+import CartDropdown from '@/components/cart/CartDropdown';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { itemCount } = useCart();
 
   // Check if we're on home or about page
   const isHomeOrAbout = pathname === '/' || pathname === '/about';
@@ -46,6 +50,7 @@ const Navbar = () => {
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
+    setIsCartOpen(false);
   }, [pathname]);
 
   // Removed payment page check since we no longer have payment pages
@@ -104,13 +109,54 @@ const Navbar = () => {
           >
             About Us
           </Link>
+          <div className="relative">
+            <button
+              onClick={() => setIsCartOpen((prev) => !prev)}
+              className={`relative flex items-center transition-colors duration-300 ${useDarkText ? 'text-gray-900 hover:text-your-orange' : 'text-white hover:text-your-orange'}`}
+              aria-label="View cart"
+            >
+              <ShoppingBag size={20} />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-your-orange px-1 text-[10px] font-bold text-white">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+            {isCartOpen && <CartDropdown onClose={() => setIsCartOpen(false)} />}
+          </div>
+            <Link
+            href="/login"
+            className={`font-display font-semibold uppercase tracking-wider text-md px-2 py-1 rounded transition-colors duration-300 ${false ? 'text-your-black hover:text-your-orange' : useDarkText ? 'text-gray-900 hover:text-your-orange' : 'text-white hover:text-your-orange'} ${false ? '!text-your-black !hover:text-your-orange' : ''}`}
+            onClick={(e) => {
+              e.preventDefault();
+              handleNavClick('/login');
+            }}
+          >
+            <User size={20} className="inline-block mr-1" />
+            
+          </Link>
         </nav>
 
         {/* Mobile Menu Button */}
-        <div className="md:hidden flex items-center">
-          <button 
-            className={`transition-colors duration-300 ${false ? 'text-your-black hover:text-your-orange' : useDarkText ? 'text-gray-900 hover:text-your-orange' : 'text-white hover:text-your-orange'} ${false ? '!text-your-black !hover:text-your-orange' : ''}`} 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+        <div className="md:hidden flex items-center gap-4">
+          <div className="relative">
+            <button
+              onClick={() => setIsCartOpen((prev) => !prev)}
+              className={`relative flex items-center transition-colors duration-300 ${useDarkText ? 'text-gray-900 hover:text-your-orange' : 'text-white hover:text-your-orange'}`}
+              aria-label="View cart"
+            >
+              <ShoppingBag size={22} />
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-your-orange px-1 text-[10px] font-bold text-white">
+                  {itemCount}
+                </span>
+              )}
+            </button>
+            {isCartOpen && <CartDropdown onClose={() => setIsCartOpen(false)} />}
+          </div>
+          <button
+            className={`transition-colors duration-300 ${false ? 'text-your-black hover:text-your-orange' : useDarkText ? 'text-gray-900 hover:text-your-orange' : 'text-white hover:text-your-orange'} ${false ? '!text-your-black !hover:text-your-orange' : ''}`}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}

@@ -1,13 +1,15 @@
 'use client';
-import { ImageIcon, Star, ArrowRight, Clock, Utensils, ExternalLink, ShoppingBag, Leaf, Flame } from 'lucide-react';
+import { ImageIcon, Star, ArrowRight, Clock, Utensils, ExternalLink, ShoppingBag, Leaf, Flame, Minus, Plus } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { MenuItem } from '@/types/menu';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type MouseEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { fadeInUp } from '@/utils/motion.variants';
 import { SpinningText } from '@/components/magicui/spinning-text';
 import { logAnalyticsEvent } from '@/utils/loyaltyAndAnalytics';
+import { useCart } from '@/context/CartContext';
+import { useToast } from '@/context/ToastContext';
 
 
 interface MenuItemCardProps {
@@ -20,7 +22,26 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+  const { items: cartItems, addToCart, updateQuantity } = useCart();
+  const { showToast } = useToast();
+  const quantityInCart = cartItems.find((i) => i.id === item.id)?.quantity ?? 0;
+
+  const handleAddToCart = (e: MouseEvent) => {
+    e.stopPropagation();
+    addToCart(item);
+    showToast(`${item.name} added to cart`, 'success');
+  };
+
+  const handleIncrement = (e: MouseEvent) => {
+    e.stopPropagation();
+    updateQuantity(item.id, quantityInCart + 1);
+  };
+
+  const handleDecrement = (e: MouseEvent) => {
+    e.stopPropagation();
+    updateQuantity(item.id, quantityInCart - 1);
+  };
+
   // Improved image fallback logic with URL normalization
   const imageUrl = item.menu_img
     ? item.menu_img.replace(/([^:]\/)\/+/, '$1')
@@ -134,9 +155,35 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
                 <span>Sold Out</span>
                 <ArrowRight className="w-4 h-4 text-gray-400" />
               </span>
-            ) : (
-              <div className="text-center">
+            ) : quantityInCart > 0 ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleDecrement}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-your-orange/10 text-your-orange hover:bg-your-orange/20 transition-colors"
+                  aria-label={`Decrease quantity of ${item.name}`}
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <span className="w-5 text-center text-sm font-semibold text-gray-900">
+                  {quantityInCart}
+                </span>
+                <button
+                  onClick={handleIncrement}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-your-orange text-white hover:bg-your-orange/90 transition-colors"
+                  aria-label={`Increase quantity of ${item.name}`}
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
               </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                className="flex items-center gap-1.5 bg-your-orange text-white text-sm font-semibold px-3 py-1.5 rounded-full hover:bg-your-orange/90 transition-colors shadow-sm"
+                aria-label={`Add ${item.name} to cart`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                Add
+              </button>
             )}
           </div>
         </div>
